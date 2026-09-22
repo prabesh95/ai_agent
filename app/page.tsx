@@ -1,69 +1,139 @@
-import Image from "next/image";
+"use client";
+
+import { useChat } from "@ai-sdk/react";
+import { FormEvent, useState } from "react";
 
 export default function Home() {
+  const [input, setInput] = useState("");
+
+  const {
+    messages,
+    sendMessage,
+    status,
+    stop,
+    error,
+    setMessages,
+  } = useChat();
+
+  const isGenerating =
+    status === "submitted" || status === "streaming";
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>
+  ) {
+    event.preventDefault();
+
+    const text = input.trim();
+
+    if (!text || isGenerating) return;
+
+    setInput("");
+    await sendMessage({ text });
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <main className="chat-page">
+      <section className="chat-card">
+        <header className="chat-header">
+          <div>
+            <h1>Local AI Chat</h1>
+            <p>AI SDK + Ollama + qwen2.5:3b</p>
+          </div>
+
+          <button
+            className="clear-button"
+            type="button"
+            onClick={() => setMessages([])}
+            disabled={messages.length === 0 || isGenerating}
+          >
+            Clear
+          </button>
+        </header>
+
+        <div className="messages">
+          {messages.length === 0 && (
+            <div className="empty-state">
+              <div>
+                <h2>Start a conversation</h2>
+                <p>
+                  Responses are generated locally through Ollama.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {messages.map((message) => (
+            <div
+              className={`message ${message.role}`}
+              key={message.id}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+              <strong>
+                {message.role === "user"
+                  ? "You"
+                  : "Assistant"}
+              </strong>
+
+              {message.parts.map((part, index) => {
+                if (part.type !== "text") return null;
+
+                return (
+                  <p key={`${message.id}-${index}`}>
+                    {part.text}
+                  </p>
+                );
+              })}
+            </div>
+          ))}
+
+          {status === "submitted" && (
+            <div className="message assistant">
+              <strong>Assistant</strong>
+              <p>Loading model...</p>
+            </div>
+          )}
+        </div>
+
+        {error && (
+          <p className="error-message">
+            {error.message ||
+              "Something went wrong while generating."}
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+        )}
+
+        <form className="chat-form" onSubmit={handleSubmit}>
+          <textarea
+            value={input}
+            onChange={(event) =>
+              setInput(event.target.value)
+            }
+            placeholder="Write a message..."
+            rows={3}
+            disabled={isGenerating}
+            onKeyDown={(event) => {
+              if (
+                event.key === "Enter" &&
+                !event.shiftKey
+              ) {
+                event.preventDefault();
+                event.currentTarget.form?.requestSubmit();
+              }
+            }}
+          />
+
+          {isGenerating ? (
+            <button type="button" onClick={stop}>
+              Stop
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!input.trim()}
+            >
+              Send
+            </button>
+          )}
+        </form>
+      </section>
+    </main>
   );
 }
