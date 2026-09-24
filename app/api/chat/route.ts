@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       onError(error) {
         console.error("AI stream error:", error);
 
-        return "Ollama could not generate a response. Make sure it is running.";
+        return "The AI provider could not generate a response.";
       },
     });
   } catch (error) {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
     return Response.json(
       {
         error:
-          "Could not start the chat request. Make sure Ollama is running.",
+          "Could not start the chat request. Make sure AI provider is running.",
       },
       { status: 500 }
     );
