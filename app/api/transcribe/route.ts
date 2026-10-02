@@ -5,10 +5,10 @@ const speechServiceUrl =
   "http://127.0.0.1:8000";
 
 export async function POST(request: Request) {
-  try {
+  try {   
     const incomingFormData = await request.formData();
     const audioFile = incomingFormData.get("file");
-
+console.log("Received audio file:", audioFile);
     if (!(audioFile instanceof File)) {
       return Response.json(
         {
