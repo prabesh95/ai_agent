@@ -212,3 +212,25 @@ textarea {
     flex: 1;
   }
 }
+.speaker-button {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.speaker-button:hover:not(:disabled) {
+  background: rgba(128, 128, 128, 0.15);
+}
+
+.speaker-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
