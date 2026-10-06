@@ -1,6 +1,6 @@
 import type { FormEvent, RefObject } from "react";
 import type { MicrophonePhase } from "../../lib/voice/microphone";
-
+import { Icon } from "../ui/Icon";
 type Props = {
   input: string;
   readOnly: boolean;
@@ -17,38 +17,117 @@ type Props = {
   onStopMic: () => void;
   onStopGeneration: () => void;
 };
-
 export function ChatComposer(props: Props) {
-  const opening = props.micPhase === "opening";
-  const listening = props.micPhase === "listening";
-  const finishing = props.micPhase === "finishing";
-  const disabled = opening || listening || finishing || props.generating || props.transcribing;
+  const opening = props.micPhase === "opening",
+    listening = props.micPhase === "listening",
+    finishing = props.micPhase === "finishing";
+  const disabled =
+    opening || listening || finishing || props.generating || props.transcribing;
   return (
-    <form className="chat-form" onSubmit={props.onSubmit}>
-      <button className={props.micEnabled ? "microphone-button recording" : "microphone-button"}
-        type="button" onClick={props.micEnabled ? props.onStopMic : props.onStartMic}
-        disabled={opening || finishing || (!props.micEnabled && (props.generating || props.transcribing))}
-        aria-label={props.micEnabled ? "Turn microphone off" : "Start recording"}>
-        {opening ? "Opening mic..." : props.micEnabled ? "Stop mic" : props.transcribing ? "Processing..." : "Mic"}
-      </button>
-      <textarea ref={props.textareaRef} value={props.input} readOnly={props.readOnly}
-        aria-label="Message" rows={3} disabled={disabled}
-        onFocus={props.onReview} onClick={props.onReview}
-        onChange={(event) => props.onChange(event.target.value)}
-        placeholder={listening ? "Listening..." : props.transcribing ? "Transcribing..." : "Write or speak a message..."}
-        onKeyDown={(event) => {
-          if (props.readOnly || event.nativeEvent.isComposing) return;
-          if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-            event.currentTarget.form?.requestSubmit();
+    <form
+      className="panel composer-panel"
+      onSubmit={props.onSubmit}
+      aria-label="Message composer"
+    >
+      <div className="composer-input-row">
+        <span className="composer-spark" aria-hidden="true">
+          <Icon name="spark" size={20} />
+        </span>
+        <textarea
+          className="field composer-input"
+          ref={props.textareaRef}
+          value={props.input}
+          readOnly={props.readOnly}
+          rows={2}
+          aria-label="Message"
+          aria-describedby="composer-help"
+          disabled={disabled}
+          onFocus={props.onReview}
+          onClick={props.onReview}
+          onChange={(event) => props.onChange(event.target.value)}
+          placeholder={
+            listening
+              ? "Listening to you..."
+              : props.transcribing
+                ? "Finding your words..."
+                : props.readOnly
+                  ? "Voice messages send immediately"
+                  : "What’s on your mind?"
           }
-        }} />
-      {props.generating ? (
-        <button type="button" onClick={props.onStopGeneration}>Stop</button>
-      ) : (
-        <button type="submit" disabled={!props.input.trim() || disabled}>
-          {props.countdown !== null ? `Send (${props.countdown}s)` : "Send"}
-        </button>
+          onKeyDown={(event) => {
+            if (props.readOnly || event.nativeEvent.isComposing) return;
+            if (event.key === "Enter" && !event.shiftKey) {
+              event.preventDefault();
+              event.currentTarget.form?.requestSubmit();
+            }
+          }}
+        />
+        {props.generating ? (
+          <button
+            className="btn btn-secondary composer-send"
+            type="button"
+            onClick={props.onStopGeneration}
+            aria-label="Stop generating"
+          >
+            <Icon name="stop" size={18} />
+            <span>Stop</span>
+          </button>
+        ) : (
+          <button
+            className="btn btn-primary composer-send"
+            type="submit"
+            disabled={!props.input.trim() || disabled}
+            aria-label={
+              props.countdown !== null
+                ? `Send message, auto-send in ${props.countdown} seconds`
+                : "Send message"
+            }
+          >
+            <Icon name="send" size={17} />
+            <span>
+              {props.countdown !== null ? `${props.countdown}s` : "Send"}
+            </span>
+          </button>
+        )}
+      </div>
+      <div className="composer-toolbar">
+        <span className="composer-help" id="composer-help">
+          {props.readOnly
+            ? "Immediate voice mode · switch to Review to type"
+            : "Enter to send · Shift + Enter for a new line"}
+        </span>
+        <div className="mic-control">
+          <span>
+            {opening
+              ? "Opening microphone"
+              : props.micEnabled
+                ? listening
+                  ? "Listening"
+                  : "Microphone enabled"
+                : "Tap to speak"}
+          </span>
+          <button
+            className={`mic-button ${props.micEnabled ? "is-enabled" : ""} ${listening ? "is-listening" : ""}`}
+            type="button"
+            onClick={props.micEnabled ? props.onStopMic : props.onStartMic}
+            disabled={
+              opening ||
+              finishing ||
+              (!props.micEnabled && (props.generating || props.transcribing))
+            }
+            aria-label={
+              props.micEnabled ? "Turn microphone off" : "Start recording"
+            }
+            aria-pressed={props.micEnabled}
+          >
+            <Icon name={props.micEnabled ? "stop" : "mic"} size={23} />
+          </button>
+        </div>
+      </div>
+      {props.countdown !== null && (
+        <div className="countdown-notice" role="status">
+          Sending in {props.countdown}s. Click the text box to cancel and edit.
+        </div>
       )}
     </form>
   );

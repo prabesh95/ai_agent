@@ -105,6 +105,7 @@ export function useVoiceConversation() {
   }, [messages, status, consume]);
 
   const submitText = useCallback(async (text: string, fromVoice: boolean, clearDraft = true) => {
+    console.log("submitText called with:", { text, fromVoice, clearDraft });
     const current = runtime.current;
     const trimmed = text.trim();
     if (!trimmed || current.sendPending || !current.mounted) return;
@@ -168,6 +169,9 @@ export function useVoiceConversation() {
       if (!current.mounted || controller.signal.aborted) return;
       const text = typeof data.text === "string" ? data.text.trim() : "";
       if (!text) throw new Error("No speech was detected. Please try again.");
+      console.log("Transcribed text:", text);
+      console.log("current:", current);
+      console.log("current.instantVoiceSend:", current.instantVoiceSend);
       if (current.instantVoiceSend) {
         void submitText(text, true, false);
       } else {
