@@ -17,7 +17,8 @@ export function WorkspaceSidebar({ activeView, onNavigate }: {
         const className = `nav-item ${activeView === item.id ? "is-active" : ""}`;
         const content = <><Icon name={item.icon} /><span>{item.label}</span>
           {activeView === item.id && <span className="nav-active-dot" aria-hidden="true" />}</>;
-        if (item.href && item.enabled) return <Link href={item.href} className={className} aria-current={activeView === item.id ? "page" : undefined} key={item.id}>{content}</Link>;
+        const href = item.href ?? (!onNavigate && item.enabled ? (item.id === "chat" ? "/#conversation" : "/") : undefined);
+        if (href && item.enabled) return <Link href={href} className={className} aria-current={activeView === item.id ? "page" : undefined} key={item.id}>{content}</Link>;
         return <button className={className} key={item.id} type="button"
           disabled={!item.enabled} aria-current={activeView === item.id ? "page" : undefined}
           aria-label={item.label}

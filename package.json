@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "news:collect": "node scripts/news/fetch-kantipur.mjs",
+    "news:watch": "node scripts/news/fetch-kantipur.mjs --watch",
+    "dev:news": "node scripts/dev-with-news.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.53",

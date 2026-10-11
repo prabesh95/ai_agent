@@ -1,10 +1,15 @@
 import {
   convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
   streamText,
   type UIMessage,
 } from "ai";
 
 import { chatModel } from "@/lib/ai";
+
+import { readStore } from "../../../lib/news/store.mjs";
+import { isNewsRequest, newsReply } from "../../../lib/news/query.mjs";
 
 export const runtime = "nodejs";
 
@@ -18,6 +23,22 @@ export async function POST(request: Request) {
         { error: "Messages must be an array." },
         { status: 400 }
       );
+    }
+
+    const lastUser = [...messages].reverse().find(message => message.role === "user");
+    const question = lastUser?.parts.filter(part => part.type === "text").map(part => part.text).join(" ") ?? "";
+    if (isNewsRequest(question)) {
+      const text = newsReply(await readStore(), question);
+      const stream = createUIMessageStream({
+        execute({ writer }) {
+          writer.write({ type: "start", messageId: crypto.randomUUID() });
+          writer.write({ type: "text-start", id: "saved-news" });
+          writer.write({ type: "text-delta", id: "saved-news", delta: text });
+          writer.write({ type: "text-end", id: "saved-news" });
+          writer.write({ type: "finish", finishReason: "stop" });
+        },
+      });
+      return createUIMessageStreamResponse({ stream });
     }
 
     const result = streamText({

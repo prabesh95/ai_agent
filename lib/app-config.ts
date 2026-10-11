@@ -18,7 +18,7 @@ export const WORKSPACE_NAV: {
 }[] = [
   { id: "home", label: "Home", icon: "home", enabled: true },
   { id: "chat", label: "Chat", icon: "chat", enabled: true },
-  { id: "tasks", label: "Tasks", icon: "tasks", enabled: false },
+  { id: "tasks", label: "Tasks", icon: "tasks", enabled: true, href: "/tasks" },
   { id: "calendar", label: "Calendar", icon: "calendar", enabled: false },
   { id: "files", label: "Files", icon: "files", enabled: false },
   { id: "memory", label: "Memory", icon: "memory", enabled: false },

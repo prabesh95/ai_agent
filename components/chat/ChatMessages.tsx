@@ -2,6 +2,13 @@ import type { UIMessage } from "ai";
 import { useEffect, useRef } from "react";
 import { APP_BRAND } from "../../lib/app-config";
 import { Icon } from "../ui/Icon";
+function savedArticleLinks(text: string) {
+  // Only our fixed internal article links become clickable; never render raw HTML.
+  return text.split(/(\[Read saved article\]\(\/tasks\?article=[a-f0-9]{24}\))/g).map((piece, i) => {
+    const match = piece.match(/^\[Read saved article\]\((\/tasks\?article=[a-f0-9]{24})\)$/);
+    return match ? <a key={i} href={match[1]} target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-primary)", textDecoration: "underline" }}>Read saved article</a> : piece;
+  });
+}
 function messageText(message: UIMessage) {
   return message.parts.filter((part) => part.type === "text").map((part) => part.text).join("\n\n");
 }
@@ -36,7 +43,7 @@ export function ChatMessages(props: Props) {
         const text = messageText(message), speaking = props.speakingMessageId === message.id;
         return <article className={`message ${message.role}`} key={message.id}>
           <div className="message-author"><span className="message-avatar">{message.role === "user" ? "Y" : APP_BRAND.mark}</span><strong>{message.role === "user" ? "You" : APP_BRAND.name}</strong></div>
-          {message.parts.map((part, index) => part.type === "text" ? <p key={`${message.id}-${index}`}>{part.text}</p> : null)}
+          {message.parts.map((part, index) => part.type === "text" ? <p key={`${message.id}-${index}`}>{message.role === "assistant" ? savedArticleLinks(part.text) : part.text}</p> : null)}
           {message.role === "assistant" && text.trim() && <button className={`btn btn-ghost speaker-button ${speaking ? "is-speaking" : ""}`} type="button"
             onClick={() => props.onSpeak(message.id, text)} disabled={!speaking && props.busy} aria-pressed={speaking}>
             <Icon name={speaking ? "stop" : "volume"} size={14} />{speaking ? "Stop speaking" : "Read aloud"}</button>}
