@@ -21,6 +21,9 @@ type Submission = {
 };
 
 export function useVoiceConversation() {
+  const [webSearch, setWebSearch] = useState(false);
+  const webSearchRef = useRef(false);
+  const toggleWebSearch = () => { webSearchRef.current = !webSearchRef.current; setWebSearch(webSearchRef.current); };
   const [input, setInput] = useState("");
   const [phase, setPhase] = useState<ConversationPhase>("idle");
   const [countdown, setCountdown] = useState<number | null>(null);
@@ -105,7 +108,6 @@ export function useVoiceConversation() {
   }, [messages, status, consume]);
 
   const submitText = useCallback(async (text: string, fromVoice: boolean, clearDraft = true) => {
-    console.log("submitText called with:", { text, fromVoice, clearDraft });
     const current = runtime.current;
     const trimmed = text.trim();
     if (!trimmed || current.sendPending || !current.mounted) return;
@@ -123,7 +125,7 @@ export function useVoiceConversation() {
       current.voiceDraft = false;
     }
     try {
-      await sendMessage({ text: trimmed });
+      await sendMessage({ text: trimmed }, { body: { webSearch: webSearchRef.current } });
     } catch (sendError) {
       handleSendFailure(sendError instanceof Error ? sendError : new Error("Could not send message."));
     } finally {
@@ -169,9 +171,6 @@ export function useVoiceConversation() {
       if (!current.mounted || controller.signal.aborted) return;
       const text = typeof data.text === "string" ? data.text.trim() : "";
       if (!text) throw new Error("No speech was detected. Please try again.");
-      console.log("Transcribed text:", text);
-      console.log("current:", current);
-      console.log("current.instantVoiceSend:", current.instantVoiceSend);
       if (current.instantVoiceSend) {
         void submitText(text, true, false);
       } else {
@@ -279,7 +278,7 @@ export function useVoiceConversation() {
     else micStatus = "Microphone enabled — listening resumes shortly.";
   }
 
-  return { input, phase, messages, isGenerating, isSubmitted: status === "submitted", isTranscribing, controlsBusy,
+  return { webSearch, toggleWebSearch, input, phase, messages, isGenerating, isSubmitted: status === "submitted", isTranscribing, controlsBusy,
     countdown, autoVoiceReply, instantVoiceSend, vadEnabled, microphone, micBusy,
     micStatus, speakingMessageId: speech.messageId, voiceError, speechError: speech.error,
     chatError: error?.message ?? "", textareaRef, changeInput, handleSubmit,

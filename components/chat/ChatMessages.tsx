@@ -1,3 +1,4 @@
+import "./web-search.css";
 import type { UIMessage } from "ai";
 import { useEffect, useRef } from "react";
 import { APP_BRAND } from "../../lib/app-config";
@@ -44,6 +45,12 @@ export function ChatMessages(props: Props) {
         return <article className={`message ${message.role}`} key={message.id}>
           <div className="message-author"><span className="message-avatar">{message.role === "user" ? "Y" : APP_BRAND.mark}</span><strong>{message.role === "user" ? "You" : APP_BRAND.name}</strong></div>
           {message.parts.map((part, index) => part.type === "text" ? <p key={`${message.id}-${index}`}>{message.role === "assistant" ? savedArticleLinks(part.text) : part.text}</p> : null)}
+          {message.role === "assistant" && message.parts.some(part => part.type === "source-url") && <div className="web-sources" aria-label="Web search sources"><span className="eyebrow">WEB SOURCES</span>{message.parts.map(part => {
+            if (part.type !== "source-url") return null;
+            try { const url = new URL(part.url); if (!["https:", "http:"].includes(url.protocol) || url.username || url.password) return null; }
+            catch { return null; }
+            return <a key={part.sourceId} href={part.url} target="_blank" rel="noopener noreferrer">[{part.sourceId}] {part.title || part.url}</a>;
+          })}</div>}
           {message.role === "assistant" && text.trim() && <button className={`btn btn-ghost speaker-button ${speaking ? "is-speaking" : ""}`} type="button"
             onClick={() => props.onSpeak(message.id, text)} disabled={!speaking && props.busy} aria-pressed={speaking}>
             <Icon name={speaking ? "stop" : "volume"} size={14} />{speaking ? "Stop speaking" : "Read aloud"}</button>}
