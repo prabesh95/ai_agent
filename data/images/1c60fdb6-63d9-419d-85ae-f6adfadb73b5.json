@@ -1,0 +1,13 @@
+{
+  "id": "1c60fdb6-63d9-419d-85ae-f6adfadb73b5",
+  "url": "/api/images/1c60fdb6-63d9-419d-85ae-f6adfadb73b5",
+  "description": "create me an image of a girl sitting in a chair",
+  "width": 1200,
+  "height": 1800,
+  "createdAt": "2026-10-14T11:00:45.613Z",
+  "timings": {
+    "load_seconds": 30,
+    "generation_seconds": 29.79,
+    "total_seconds": 60.29
+  }
+}

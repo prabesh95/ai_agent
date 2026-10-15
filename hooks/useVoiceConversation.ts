@@ -6,6 +6,7 @@ import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMicrophone } from "./useMicrophone";
 import { useSpeechPlayback } from "./useSpeechPlayback";
+import { useChatPersistence } from "./useChatPersistence";
 
 export type ConversationPhase = "idle" | "transcribing" | "reviewing" | "generating";
 export function messageText(message: UIMessage) {
@@ -98,6 +99,7 @@ export function useVoiceConversation() {
     },
     onError: handleSendFailure,
   });
+  useChatPersistence(messages, setMessages, input, updateInput);
   const isGenerating = status === "submitted" || status === "streaming";
 
   useEffect(() => {
